@@ -39,19 +39,16 @@ struct HanoiPuzzle {
     }
     
     func moveDiskFromPeg(sourcePeg: HanoiPeg, targetPeg: HanoiPeg) -> HanoiPuzzle {
-        // This smells funny.  I temporarily store the pegs in a dictionary so I can mutate them.  I need to figure out the rules for mutability of dictionary values.
-        var dictPegs = [ HanoiPeg.First : self.firstPeg.copy(),
-                         HanoiPeg.Second: self.secondPeg.copy(),
-                         HanoiPeg.Third: self.thirdPeg.copy() ]
+        var pegsCopy = self.pegs
         
-        var tempSourcePeg = dictPegs[sourcePeg]!
-        var tempTargetPeg = dictPegs[targetPeg]!
-        tempTargetPeg.append(tempSourcePeg.removeLast())
+        var sourcePegCopy = pegsCopy[sourcePeg]!.copy()
+        var targetPegCopy = pegsCopy[targetPeg]!.copy()
+        targetPegCopy.append(sourcePegCopy.removeLast())
         
-        dictPegs[sourcePeg] = tempSourcePeg
-        dictPegs[targetPeg] = tempTargetPeg
+        pegsCopy[sourcePeg] = sourcePegCopy
+        pegsCopy[targetPeg] = targetPegCopy
         
-        return HanoiPuzzle(firstPeg: dictPegs[HanoiPeg.First]!, secondPeg: dictPegs[HanoiPeg.Second]!, thirdPeg: dictPegs[HanoiPeg.Third]!)
+        return HanoiPuzzle(firstPeg: pegsCopy[HanoiPeg.First]!, secondPeg: pegsCopy[HanoiPeg.Second]!, thirdPeg: pegsCopy[HanoiPeg.Third]!)
     }
 }
 
