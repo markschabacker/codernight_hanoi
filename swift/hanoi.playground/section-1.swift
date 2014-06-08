@@ -13,20 +13,29 @@ enum HanoiPeg {
 }
 
 struct HanoiPuzzle {
-    var firstPeg: Array<HanoiDisk>
-    var secondPeg: Array<HanoiDisk>
-    var thirdPeg: Array<HanoiDisk>
+    var firstPeg: Array<HanoiDisk> { get { return self.pegs[HanoiPeg.First]! } }
+    var secondPeg: Array<HanoiDisk> { get { return self.pegs[HanoiPeg.Second]! } }
+    var thirdPeg: Array<HanoiDisk> { get { return self.pegs[HanoiPeg.Third]! } }
+    
+    var pegs: Dictionary<HanoiPeg, Array<HanoiDisk>>
     
     init(firstPeg: Array<HanoiDisk>, secondPeg: Array<HanoiDisk>, thirdPeg: Array<HanoiDisk>) {
-        self.firstPeg = firstPeg
-        self.secondPeg = secondPeg
-        self.thirdPeg = thirdPeg
+        self.pegs = [ HanoiPeg.First: firstPeg,
+                        HanoiPeg.Second: secondPeg,
+                        HanoiPeg.Third: thirdPeg ]
     }
     
     init(numberOfDisks: Int){
-        self.firstPeg = Array(1...numberOfDisks).map { HanoiDisk(size: $0) }
-        self.secondPeg = []
-        self.thirdPeg = []
+        var firstPeg = Array(1...numberOfDisks).map { HanoiDisk(size: $0) }
+        var secondPeg = Array<HanoiDisk>()
+        var thirdPeg = Array<HanoiDisk>()
+        
+        // TODO: Chaining initializers slows down the playground?
+        //self.init(firstPeg: firstPeg, secondPeg: secondPeg, thirdPeg: thirdPeg)
+        
+        self.pegs = [ HanoiPeg.First: firstPeg,
+                        HanoiPeg.Second: secondPeg,
+                        HanoiPeg.Third: thirdPeg ]
     }
     
     func moveDiskFromPeg(sourcePeg: HanoiPeg, targetPeg: HanoiPeg) -> HanoiPuzzle {
@@ -60,7 +69,6 @@ class HanoiPuzzleQuickLookHelper : NSObject {
         return retVal
     }
 }
-
 
 let puzzle = HanoiPuzzle(numberOfDisks: 2)
 HanoiPuzzleQuickLookHelper(puzzle: puzzle)
