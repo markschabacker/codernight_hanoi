@@ -65,5 +65,11 @@ class HanoiPuzzleQuickLookHelper : NSObject {
 let puzzle = HanoiPuzzle(numberOfDisks: 2)
 HanoiPuzzleQuickLookHelper(puzzle: puzzle)
 
-let movedPuzzle = puzzle.moveDiskFromPeg(HanoiPeg.First, targetPeg: HanoiPeg.Second)
-HanoiPuzzleQuickLookHelper(puzzle: movedPuzzle)
+let firstStep = puzzle.moveDiskFromPeg(HanoiPeg.First, targetPeg: HanoiPeg.Second)
+HanoiPuzzleQuickLookHelper(puzzle: firstStep)
+
+let secondStep = firstStep.moveDiskFromPeg(HanoiPeg.First, targetPeg: HanoiPeg.Third)
+HanoiPuzzleQuickLookHelper(puzzle: secondStep)
+
+let thirdStep = secondStep.moveDiskFromPeg(HanoiPeg.Second, targetPeg: HanoiPeg.Third)
+HanoiPuzzleQuickLookHelper(puzzle: thirdStep)
