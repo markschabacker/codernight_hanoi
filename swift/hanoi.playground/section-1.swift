@@ -38,15 +38,15 @@ struct HanoiPuzzle {
                         HanoiPeg.Third: thirdPeg ]
     }
     
-    func moveDiskFromPeg(sourcePeg: HanoiPeg, targetPeg: HanoiPeg) -> HanoiPuzzle {
+    func moveDiskFromPeg(fromPeg: HanoiPeg, toPeg: HanoiPeg) -> HanoiPuzzle {
         var pegsCopy = self.pegs
         
-        var sourcePegCopy = pegsCopy[sourcePeg]!.copy()
-        var targetPegCopy = pegsCopy[targetPeg]!.copy()
-        targetPegCopy.append(sourcePegCopy.removeLast())
+        var fromPegCopy = pegsCopy[fromPeg]!.copy()
+        var toPegCopy = pegsCopy[toPeg]!.copy()
+        toPegCopy.append(fromPegCopy.removeLast())
         
-        pegsCopy[sourcePeg] = sourcePegCopy
-        pegsCopy[targetPeg] = targetPegCopy
+        pegsCopy[fromPeg] = fromPegCopy
+        pegsCopy[toPeg] = toPegCopy
         
         return HanoiPuzzle(firstPeg: pegsCopy[HanoiPeg.First]!, secondPeg: pegsCopy[HanoiPeg.Second]!, thirdPeg: pegsCopy[HanoiPeg.Third]!)
     }
@@ -70,11 +70,11 @@ class HanoiPuzzleQuickLookHelper : NSObject {
 let puzzle = HanoiPuzzle(numberOfDisks: 2)
 HanoiPuzzleQuickLookHelper(puzzle: puzzle)
 
-let firstStep = puzzle.moveDiskFromPeg(HanoiPeg.First, targetPeg: HanoiPeg.Second)
+let firstStep = puzzle.moveDiskFromPeg(HanoiPeg.First, toPeg: HanoiPeg.Second)
 HanoiPuzzleQuickLookHelper(puzzle: firstStep)
 
-let secondStep = firstStep.moveDiskFromPeg(HanoiPeg.First, targetPeg: HanoiPeg.Third)
+let secondStep = firstStep.moveDiskFromPeg(HanoiPeg.First, toPeg: HanoiPeg.Third)
 HanoiPuzzleQuickLookHelper(puzzle: secondStep)
 
-let thirdStep = secondStep.moveDiskFromPeg(HanoiPeg.Second, targetPeg: HanoiPeg.Third)
+let thirdStep = secondStep.moveDiskFromPeg(HanoiPeg.Second, toPeg: HanoiPeg.Third)
 HanoiPuzzleQuickLookHelper(puzzle: thirdStep)
