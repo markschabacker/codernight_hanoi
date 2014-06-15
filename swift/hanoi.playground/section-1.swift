@@ -140,13 +140,19 @@ class HanoiPuzzleSolverStepQuickLookDelegate : HanoiSolverStepDelegate {
 }
 
 class HanoiDiskView : NSView {
-    init(frame: NSRect) {
+    var color : NSColor
+    
+    init(frame: NSRect, color: NSColor) {
+        self.color = color
+        
         super.init(frame: frame)
     }
     
     override func drawRect(dirtyRect: NSRect) {
         var cornerRadius = self.frame.height / 2
         var path = NSBezierPath(roundedRect: dirtyRect, xRadius: cornerRadius, yRadius: cornerRadius)
+        
+        self.color.setFill()
         path.fill()
     }
     
@@ -199,7 +205,12 @@ class HanoiView : NSView {
         else {
             var diskWidth = self.diskWidthForSize(disk.size, maxSize: maxSize)
             var diskHeight = self.diskHeight()
-            var newDiskView = HanoiDiskView(frame: NSRect(x: 0, y: 0, width: diskWidth, height: diskHeight))
+            var diskColor = self.diskColorForSize(disk.size, maxSize: maxSize)
+            
+            var newDiskView = HanoiDiskView(
+                frame: NSRect(x: 0, y: 0, width: diskWidth, height: diskHeight),
+                color: diskColor
+            )
             
             self.disks[disk] = newDiskView
             self.addSubview(newDiskView)
@@ -218,6 +229,14 @@ class HanoiView : NSView {
         return CGPoint(x: centerX, y: centerY)
     }
     
+    func diskColorForSize(diskSize: Int, maxSize: Int) -> NSColor {
+        var greyFraction = 1 - ((Double(maxSize - diskSize) / Double(maxSize)) / 2)
+        var baseColor = NSColor.whiteColor()
+        var blendColor = NSColor.blackColor()
+        var newColor = baseColor.blendedColorWithFraction(greyFraction, ofColor:blendColor)
+        return newColor
+    }
+    
     func diskWidthForSize(diskSize: Int, maxSize: Int) -> Double {
         var maxWidth = self.diskWidth()
         var minWidth = maxWidth / Double(maxSize)
@@ -233,7 +252,6 @@ class HanoiView : NSView {
         return 24
     }
 }
-
 
 let puzzle = HanoiPuzzle(numberOfDisks: 4)
 let puzzleDelegate = HanoiPuzzleSolverStepQuickLookDelegate()
