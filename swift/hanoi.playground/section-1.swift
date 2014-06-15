@@ -136,13 +136,17 @@ let puzzle = HanoiPuzzle(numberOfDisks: 3)
 let puzzleDelegate = HanoiPuzzleSolverStepQuickLookDelegate()
 let result = HanoiSolver(delegate: puzzleDelegate).solve(puzzle)
 
-// Ugh. Work around array weirdness?
+// These two lines crash the playground:
+// var puzzleSteps = puzzleDelegate.puzzleSteps
+// var puzzleSteps = puzzleDelegate.puzzleSteps.copy()
+// Instead, manually copy the puzzle steps.  I am probably misunderstanding something but this could be a Playground beta bug.
 var puzzleSteps = Array<HanoiPuzzle>()
 puzzleSteps.append(puzzle)
-for var i=0; i < puzzleDelegate.puzzleSteps.count; i++ {
-    puzzleSteps.append(puzzleDelegate.puzzleSteps[i])
+for step in puzzleDelegate.puzzleSteps {
+    puzzleSteps.append(step)
 }
+// End Workaround
 
-for var i=0; i < puzzleSteps.count; i++ {
-    HanoiPuzzleQuickLookHelper(puzzle: puzzleSteps[i])
+for step in puzzleSteps {
+    HanoiPuzzleQuickLookHelper(puzzle: step)
 }
