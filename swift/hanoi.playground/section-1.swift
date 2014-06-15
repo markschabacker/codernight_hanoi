@@ -120,28 +120,15 @@ class HanoiPuzzleQuickLookHelper : NSObject {
     }
 }
 
-// Array copy behavior is really getting to me
-class PuzzleStepsWrapper {
+class HanoiPuzzleSolverStepQuickLookDelegate : HanoiSolverStepDelegate {
     var puzzleSteps : Array<HanoiPuzzle>
-    
+
     init() {
         self.puzzleSteps = Array<HanoiPuzzle>()
     }
-    
-    func addStep(step: HanoiPuzzle) -> Void {
-        self.puzzleSteps.append(step)
-    }
-}
-
-class HanoiPuzzleSolverStepQuickLookDelegate : HanoiSolverStepDelegate {
-    var puzzleStepsWrapper: PuzzleStepsWrapper
-
-    init() {
-        self.puzzleStepsWrapper = PuzzleStepsWrapper()
-    }
 
     func stepMade(initialState: HanoiPuzzle, resultState: HanoiPuzzle, sourcePeg: HanoiPeg, destinationPeg: HanoiPeg) -> Void {
-        self.puzzleStepsWrapper.addStep(resultState)
+        self.puzzleSteps.append(resultState)
     }
 }
 
@@ -152,8 +139,8 @@ let result = HanoiSolver(delegate: puzzleDelegate).solve(puzzle)
 // Ugh. Work around array weirdness?
 var puzzleSteps = Array<HanoiPuzzle>()
 puzzleSteps.append(puzzle)
-for var i=0; i < puzzleDelegate.puzzleStepsWrapper.puzzleSteps.count; i++ {
-    puzzleSteps.append(puzzleDelegate.puzzleStepsWrapper.puzzleSteps[i])
+for var i=0; i < puzzleDelegate.puzzleSteps.count; i++ {
+    puzzleSteps.append(puzzleDelegate.puzzleSteps[i])
 }
 
 for var i=0; i < puzzleSteps.count; i++ {
