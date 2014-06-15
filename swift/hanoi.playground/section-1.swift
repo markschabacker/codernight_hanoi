@@ -120,12 +120,40 @@ class HanoiPuzzleQuickLookHelper : NSObject {
     }
 }
 
-struct HanoiPuzzleSolverStepQuickLookDelegate : HanoiSolverStepDelegate {
+// Array copy behavior is really getting to me
+class PuzzleStepsWrapper {
+    var puzzleSteps : Array<HanoiPuzzle>
+    
+    init() {
+        self.puzzleSteps = Array<HanoiPuzzle>()
+    }
+    
+    func addStep(step: HanoiPuzzle) -> Void {
+        self.puzzleSteps.append(step)
+    }
+}
+
+class HanoiPuzzleSolverStepQuickLookDelegate : HanoiSolverStepDelegate {
+    var puzzleStepsWrapper: PuzzleStepsWrapper
+
+    init() {
+        self.puzzleStepsWrapper = PuzzleStepsWrapper()
+    }
+
     func stepMade(initialState: HanoiPuzzle, resultState: HanoiPuzzle, sourcePeg: HanoiPeg, destinationPeg: HanoiPeg) -> Void {
-        HanoiPuzzleQuickLookHelper(puzzle:initialState)
+        self.puzzleStepsWrapper.addStep(resultState)
     }
 }
 
 let puzzle = HanoiPuzzle(numberOfDisks: 3)
-let result = HanoiSolver(delegate: HanoiPuzzleSolverStepQuickLookDelegate()).solve(puzzle)
-HanoiPuzzleQuickLookHelper(puzzle: result)
+
+
+let puzzleDelegate = HanoiPuzzleSolverStepQuickLookDelegate()
+let result = HanoiSolver(delegate: puzzleDelegate).solve(puzzle)
+
+// Ugh
+puzzleDelegate.puzzleStepsWrapper.puzzleSteps.insert(puzzle, atIndex:0)
+
+for var i=0; i < puzzleDelegate.puzzleStepsWrapper.puzzleSteps.count; i++ {
+    HanoiPuzzleQuickLookHelper(puzzle: puzzleDelegate.puzzleStepsWrapper.puzzleSteps[i])
+}
