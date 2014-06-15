@@ -166,6 +166,12 @@ class HanoiView : NSView {
         super.init(frame: frame)
     }
     
+    override func drawRect(dirtyRect: NSRect) {
+        var path = NSBezierPath(rect: dirtyRect)
+        path.lineWidth = 2
+        path.stroke()
+    }
+    
     func drawPuzzle(puzzle: HanoiPuzzle) -> Void {
         let pegs = [ puzzle.firstPeg, puzzle.secondPeg, puzzle.thirdPeg]
         
