@@ -1,9 +1,16 @@
 // Playground - Tower of Hanoi in Swift
 
 import Cocoa
+import XCPlayground
 
-struct HanoiDisk {
+struct HanoiDisk : Hashable, Equatable {
     var size: Int
+    
+    var hashValue: Int { get { return self.size } }
+}
+
+func == (lhs: HanoiDisk, rhs: HanoiDisk) -> Bool {
+    return lhs.size == rhs.size
 }
 
 enum HanoiPeg {
@@ -132,6 +139,81 @@ class HanoiPuzzleSolverStepQuickLookDelegate : HanoiSolverStepDelegate {
     }
 }
 
+class HanoiDiskView : NSView {
+    init(frame: NSRect) {
+        super.init(frame: frame)
+    }
+    
+    override func drawRect(dirtyRect: NSRect) {
+        var cornerRadius = self.frame.height / 2
+        var path = NSBezierPath(roundedRect: dirtyRect, xRadius: cornerRadius, yRadius: cornerRadius)
+        path.fill()
+    }
+    
+    func setCenter(point: CGPoint) -> Void {
+        let halfWidth = self.frame.width / 2
+        let halfHeight = self.frame.height / 2
+        self.frame.origin = CGPoint(x: point.x - halfWidth, y: point.y - halfHeight)
+    }
+}
+
+class HanoiView : NSView {
+    var disks: Dictionary<HanoiDisk, HanoiDiskView>
+    
+    init(frame: NSRect) {
+        self.disks = Dictionary<HanoiDisk, HanoiDiskView>()
+        
+        super.init(frame: frame)
+    }
+    
+    func drawPuzzle(puzzle: HanoiPuzzle) -> Void {
+        let pegs = [ puzzle.firstPeg, puzzle.secondPeg, puzzle.thirdPeg]
+        for var xIndex = 0; xIndex < pegs.count; xIndex++ {
+            let peg = pegs[xIndex]
+            for var yIndex = 0; yIndex < peg.count; yIndex++ {
+                var disk = peg[yIndex]
+                var diskView = self.getDiskView(disk)
+                diskView.setCenter(self.getDiskCoords(xIndex, yLocation: yIndex))
+            }
+        }
+    }
+    
+    func getDiskView(disk: HanoiDisk) -> HanoiDiskView {
+        if let existingDisk = self.disks[disk] {
+            return existingDisk
+        }
+        else {
+            var diskWidth = self.diskWidth()
+            var diskHeight = self.diskHeight()
+            var newDiskView = HanoiDiskView(frame: NSRect(x: 0, y: 0, width: diskWidth, height: diskHeight))
+            
+            self.disks[disk] = newDiskView
+            self.addSubview(newDiskView)
+            
+            return newDiskView
+        }
+    }
+    
+    func getDiskCoords(xLocation: Int, yLocation: Int) -> CGPoint {
+        let diskWidth = self.diskWidth()
+        let diskHeight = self.diskHeight()
+        
+        var centerX = (diskWidth * Double(xLocation)) + (diskWidth / 2)
+        var centerY = (diskHeight * Double(yLocation)) + (diskHeight / 2)
+        
+        return CGPoint(x: centerX, y: centerY)
+    }
+    
+    func diskWidth() -> Double {
+        return self.frame.width / 3
+    }
+    
+    func diskHeight() -> Double {
+        return 24
+    }
+}
+
+
 let puzzle = HanoiPuzzle(numberOfDisks: 3)
 let puzzleDelegate = HanoiPuzzleSolverStepQuickLookDelegate()
 let result = HanoiSolver(delegate: puzzleDelegate).solve(puzzle)
@@ -147,6 +229,12 @@ for step in puzzleDelegate.puzzleSteps {
 }
 // End Workaround
 
+var height = 300.0
+var width = 600.0
+var hanoiView = HanoiView(frame: NSRect(x: 0, y: 0, width: width, height: height))
+XCPShowView("hanoiView", hanoiView)
+
 for step in puzzleSteps {
     HanoiPuzzleQuickLookHelper(puzzle: step)
+    hanoiView.drawPuzzle(step)
 }
