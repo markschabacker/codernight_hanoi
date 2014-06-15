@@ -168,22 +168,30 @@ class HanoiView : NSView {
     
     func drawPuzzle(puzzle: HanoiPuzzle) -> Void {
         let pegs = [ puzzle.firstPeg, puzzle.secondPeg, puzzle.thirdPeg]
+        
+        // TODO: shorthand for count, sum?
+        let numDisks = pegs.map({ (peg) -> Int in
+            return peg.count
+        }).reduce(0, { (acc, count) -> Int in
+            return acc + count
+        })
+        
         for var xIndex = 0; xIndex < pegs.count; xIndex++ {
             let peg = pegs[xIndex]
             for var yIndex = 0; yIndex < peg.count; yIndex++ {
                 var disk = peg[yIndex]
-                var diskView = self.getDiskView(disk)
+                var diskView = self.getDiskView(disk, maxSize: numDisks)
                 diskView.setCenter(self.getDiskCoords(xIndex, yLocation: yIndex))
             }
         }
     }
     
-    func getDiskView(disk: HanoiDisk) -> HanoiDiskView {
+    func getDiskView(disk: HanoiDisk, maxSize: Int) -> HanoiDiskView {
         if let existingDisk = self.disks[disk] {
             return existingDisk
         }
         else {
-            var diskWidth = self.diskWidth()
+            var diskWidth = self.diskWidthForSize(disk.size, maxSize: maxSize)
             var diskHeight = self.diskHeight()
             var newDiskView = HanoiDiskView(frame: NSRect(x: 0, y: 0, width: diskWidth, height: diskHeight))
             
@@ -199,9 +207,16 @@ class HanoiView : NSView {
         let diskHeight = self.diskHeight()
         
         var centerX = (diskWidth * Double(xLocation)) + (diskWidth / 2)
-        var centerY = (diskHeight * Double(yLocation)) + (diskHeight / 2)
+        var centerY = ((diskHeight + 2) * Double(yLocation)) + (diskHeight / 2)
         
         return CGPoint(x: centerX, y: centerY)
+    }
+    
+    func diskWidthForSize(diskSize: Int, maxSize: Int) -> Double {
+        var maxWidth = self.diskWidth()
+        var minWidth = maxWidth / Double(maxSize)
+        
+        return Double(diskSize) * minWidth
     }
     
     func diskWidth() -> Double {
@@ -214,7 +229,7 @@ class HanoiView : NSView {
 }
 
 
-let puzzle = HanoiPuzzle(numberOfDisks: 3)
+let puzzle = HanoiPuzzle(numberOfDisks: 4)
 let puzzleDelegate = HanoiPuzzleSolverStepQuickLookDelegate()
 let result = HanoiSolver(delegate: puzzleDelegate).solve(puzzle)
 
