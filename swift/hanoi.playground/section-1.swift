@@ -146,14 +146,16 @@ class HanoiPuzzleSolverStepQuickLookDelegate : HanoiSolverStepDelegate {
 }
 
 let puzzle = HanoiPuzzle(numberOfDisks: 3)
-
-
 let puzzleDelegate = HanoiPuzzleSolverStepQuickLookDelegate()
 let result = HanoiSolver(delegate: puzzleDelegate).solve(puzzle)
 
-// Ugh
-puzzleDelegate.puzzleStepsWrapper.puzzleSteps.insert(puzzle, atIndex:0)
-
+// Ugh. Work around array weirdness?
+var puzzleSteps = Array<HanoiPuzzle>()
+puzzleSteps.append(puzzle)
 for var i=0; i < puzzleDelegate.puzzleStepsWrapper.puzzleSteps.count; i++ {
-    HanoiPuzzleQuickLookHelper(puzzle: puzzleDelegate.puzzleStepsWrapper.puzzleSteps[i])
+    puzzleSteps.append(puzzleDelegate.puzzleStepsWrapper.puzzleSteps[i])
+}
+
+for var i=0; i < puzzleSteps.count; i++ {
+    HanoiPuzzleQuickLookHelper(puzzle: puzzleSteps[i])
 }
