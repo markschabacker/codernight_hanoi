@@ -120,12 +120,33 @@ class HanoiPuzzleQuickLookHelper : NSObject {
     }
 }
 
-struct HanoiPuzzleSolverStepQuickLookDelegate : HanoiSolverStepDelegate {
+class HanoiPuzzleSolverStepQuickLookDelegate : HanoiSolverStepDelegate {
+    var puzzleSteps : Array<HanoiPuzzle>
+
+    init() {
+        self.puzzleSteps = Array<HanoiPuzzle>()
+    }
+
     func stepMade(initialState: HanoiPuzzle, resultState: HanoiPuzzle, sourcePeg: HanoiPeg, destinationPeg: HanoiPeg) -> Void {
-        HanoiPuzzleQuickLookHelper(puzzle:initialState)
+        self.puzzleSteps.append(resultState)
     }
 }
 
 let puzzle = HanoiPuzzle(numberOfDisks: 3)
-let result = HanoiSolver(delegate: HanoiPuzzleSolverStepQuickLookDelegate()).solve(puzzle)
-HanoiPuzzleQuickLookHelper(puzzle: result)
+let puzzleDelegate = HanoiPuzzleSolverStepQuickLookDelegate()
+let result = HanoiSolver(delegate: puzzleDelegate).solve(puzzle)
+
+// These two lines crash the playground:
+// var puzzleSteps = puzzleDelegate.puzzleSteps
+// var puzzleSteps = puzzleDelegate.puzzleSteps.copy()
+// Instead, manually copy the puzzle steps.  I am probably misunderstanding something but this could be a Playground beta bug.
+var puzzleSteps = Array<HanoiPuzzle>()
+puzzleSteps.append(puzzle)
+for step in puzzleDelegate.puzzleSteps {
+    puzzleSteps.append(step)
+}
+// End Workaround
+
+for step in puzzleSteps {
+    HanoiPuzzleQuickLookHelper(puzzle: step)
+}
