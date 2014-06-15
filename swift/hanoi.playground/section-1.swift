@@ -48,16 +48,35 @@ struct HanoiPuzzle {
         pegsCopy[fromPeg] = fromPegCopy
         pegsCopy[toPeg] = toPegCopy
         
-        let moveResults = HanoiPuzzle(firstPeg: pegsCopy[HanoiPeg.First]!, secondPeg: pegsCopy[HanoiPeg.Second]!, thirdPeg: pegsCopy[HanoiPeg.Third]!)
-        
-        HanoiPuzzleQuickLookHelper(puzzle: moveResults) // DEMO: put a quick look here
-        
-        return moveResults
+        return HanoiPuzzle(firstPeg: pegsCopy[HanoiPeg.First]!, secondPeg: pegsCopy[HanoiPeg.Second]!, thirdPeg: pegsCopy[HanoiPeg.Third]!)
     }
 }
 
-class HanoiSolver : NSObject {
-    // TODO: track intermediate steps
+struct HanoiSolverStep {
+    var initialState: HanoiPuzzle
+    var resultState: HanoiPuzzle
+    var sourcePeg: HanoiPeg
+    var destinationPeg: HanoiPeg
+    
+    init(initialState: HanoiPuzzle, resultState: HanoiPuzzle, sourcePeg: HanoiPeg, destinationPeg: HanoiPeg) {
+        self.initialState = initialState
+        self.resultState = resultState
+        self.sourcePeg = sourcePeg
+        self.destinationPeg = destinationPeg
+    }
+}
+
+protocol HanoiSolverStepDelegate {
+    func stepMade(initialState: HanoiPuzzle, resultState: HanoiPuzzle, sourcePeg: HanoiPeg, destinationPeg: HanoiPeg) -> Void
+}
+
+struct HanoiSolver {
+    var stepDelegate: HanoiSolverStepDelegate?
+    
+    init(delegate: HanoiSolverStepDelegate?) {
+        self.stepDelegate = delegate;
+    }
+    
     func solve(puzzle: HanoiPuzzle) -> HanoiPuzzle {
         var bottomDisk = puzzle.firstPeg[0]
         return solveRec(puzzle, diskSize: bottomDisk.size, sourcePeg: HanoiPeg.First, destPeg: HanoiPeg.Third, tempPeg: HanoiPeg.Second)
@@ -66,13 +85,23 @@ class HanoiSolver : NSObject {
     func solveRec(puzzle: HanoiPuzzle, diskSize: Int, sourcePeg: HanoiPeg, destPeg: HanoiPeg, tempPeg: HanoiPeg) -> HanoiPuzzle
     {
         if 1 == diskSize {
-            return puzzle.moveDiskFromPeg(sourcePeg, toPeg: destPeg)
+            return moveDisk(puzzle, fromPeg: sourcePeg, toPeg: destPeg)
         }
         else {
             let smallerDisksMoved = solveRec(puzzle, diskSize: diskSize - 1, sourcePeg: sourcePeg, destPeg: tempPeg, tempPeg: destPeg)
-            let smallerDisksRemaining = smallerDisksMoved.moveDiskFromPeg(sourcePeg, toPeg: destPeg)
+            let smallerDisksRemaining = moveDisk(smallerDisksMoved, fromPeg: sourcePeg, toPeg: destPeg)
             return solveRec(smallerDisksRemaining, diskSize: diskSize - 1, sourcePeg: tempPeg, destPeg: destPeg, tempPeg: sourcePeg)
         }
+    }
+    
+    func moveDisk(puzzle: HanoiPuzzle, fromPeg: HanoiPeg, toPeg: HanoiPeg) -> HanoiPuzzle {
+        var result = puzzle.moveDiskFromPeg(fromPeg, toPeg: toPeg)
+        
+        if let nonNilStepDelegate = self.stepDelegate {
+            nonNilStepDelegate.stepMade(puzzle, resultState: result, sourcePeg: fromPeg, destinationPeg: toPeg)
+        }
+        
+        return result
     }
 }
 
@@ -91,8 +120,12 @@ class HanoiPuzzleQuickLookHelper : NSObject {
     }
 }
 
+struct HanoiPuzzleSolverStepQuickLookDelegate : HanoiSolverStepDelegate {
+    func stepMade(initialState: HanoiPuzzle, resultState: HanoiPuzzle, sourcePeg: HanoiPeg, destinationPeg: HanoiPeg) -> Void {
+        HanoiPuzzleQuickLookHelper(puzzle:initialState)
+    }
+}
 
 let puzzle = HanoiPuzzle(numberOfDisks: 3)
-HanoiPuzzleQuickLookHelper(puzzle: puzzle) // DEMO: put a quick look here (Initial State)
-let result = HanoiSolver().solve(puzzle)
-HanoiPuzzleQuickLookHelper(puzzle: result) // DEMO: put a quick look here (Final State)
+let result = HanoiSolver(delegate: HanoiPuzzleSolverStepQuickLookDelegate()).solve(puzzle)
+HanoiPuzzleQuickLookHelper(puzzle: result)
