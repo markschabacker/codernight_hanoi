@@ -182,9 +182,21 @@ class HanoiView : SCNView {
         cameraNode.position = SCNVector3(x: 0, y: 1, z: 3)
         scene.rootNode.addChildNode(cameraNode)
         
-        var light = SCNLight()
-        light.type = SCNLightTypeDirectional
-        scene.rootNode.light = light
+        var lightAbove = SCNLight()
+        lightAbove.type = SCNLightTypeOmni
+        var lightAboveNode = SCNNode()
+        lightAboveNode.position = SCNVector3(x: 0, y: 5, z: 0)
+        lightAboveNode.light = lightAbove
+        scene.rootNode.addChildNode(lightAboveNode)
+        
+        var lightDirectional = SCNLight()
+        lightDirectional.type = SCNLightTypeDirectional
+        cameraNode.light = lightDirectional
+        
+        var floor = SCNFloor()
+        floor.reflectivity = 0.25
+        var floorNode = SCNNode(geometry: floor)
+        scene.rootNode.addChildNode(floorNode)
         
         self.scene = scene
     }
@@ -197,7 +209,7 @@ class HanoiView : SCNView {
         SCNTransaction.setAnimationDuration(animationDuration)
         diskNode.position = SCNVector3(
             x: horizontalSpacing * CGFloat(xLocation - 1),
-            y: verticalSpacing * CGFloat(yLocation),
+            y: pipeRadius + verticalSpacing * CGFloat(yLocation),
             z: 0
         )
     }
