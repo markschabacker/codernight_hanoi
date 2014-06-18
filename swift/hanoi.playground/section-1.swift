@@ -163,6 +163,12 @@ class HanoiDiskView : SCNTorus {
 
 class HanoiView : SCNView {
     var disks: Dictionary<HanoiDisk, SCNNode>
+    let diskColors = [
+        NSColor.blueColor(),
+        NSColor.greenColor(),
+        NSColor.redColor(),
+        NSColor.yellowColor()
+    ]
     
     init(frame: NSRect) {
         self.disks = Dictionary<HanoiDisk, SCNNode>()
@@ -239,11 +245,7 @@ class HanoiView : SCNView {
     }
     
     func diskColorForSize(diskSize: Int, maxSize: Int) -> NSColor {
-        var greyFraction = 1 - ((Double(maxSize - diskSize) / Double(maxSize)) / 2)
-        var baseColor = NSColor.whiteColor()
-        var blendColor = NSColor.blackColor()
-        var newColor = baseColor.blendedColorWithFraction(greyFraction, ofColor:blendColor)
-        return newColor
+        return self.diskColors[diskSize % maxSize]
     }
     
     func diskRadiusForSize(diskSize: Int, maxSize: Int) -> CGFloat {
