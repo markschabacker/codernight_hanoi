@@ -209,7 +209,6 @@ class HanoiView : SCNView {
         let verticalSpacing = 2.1 * pipeRadius
         let horizontalSpacing = 4 * maxDiskRadius
         
-        SCNTransaction.setAnimationDuration(animationDuration)
         diskNode.position = SCNVector3(
             x: horizontalSpacing * CGFloat(xLocation - 1),
             y: pipeRadius + verticalSpacing * CGFloat(yLocation),
@@ -258,7 +257,6 @@ class HanoiView : SCNView {
 class HanoiPuzzleAnimator : NSObject {
     var puzzleView: HanoiView
     var puzzleSteps: Array<HanoiPuzzle>
-    var timer : NSTimer?
     
     init(puzzleView: HanoiView, puzzleSteps: Array<HanoiPuzzle>)
     {
@@ -269,20 +267,24 @@ class HanoiPuzzleAnimator : NSObject {
     }
     
     func start() -> Void {
-        var timer = NSTimer(timeInterval: animationDuration, target: self, selector: "renderStep", userInfo: nil, repeats: true)
-        self.timer = timer
-        
-        NSRunLoop.mainRunLoop().addTimer(timer, forMode: NSRunLoopCommonModes)
+        renderStep()
     }
     
     func renderStep() -> Void {
         if self.puzzleSteps.isEmpty {
-            self.timer!.invalidate()
             return
+        }
+        
+        SCNTransaction.begin()
+        SCNTransaction.setAnimationDuration(animationDuration)
+        SCNTransaction.setCompletionBlock() {
+            self.renderStep()
         }
         
         var step = self.puzzleSteps.removeLast()
         self.puzzleView.drawPuzzle(step)
+        
+        SCNTransaction.commit()
     }
 }
 
