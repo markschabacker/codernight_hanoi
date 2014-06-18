@@ -255,7 +255,7 @@ class HanoiView : SCNView {
     }
 }
 
-class PuzzleAnimator : NSObject {
+class HanoiPuzzleAnimator : NSObject {
     var puzzleView: HanoiView
     var puzzleSteps: Array<HanoiPuzzle>
     var timer : NSTimer?
@@ -310,5 +310,5 @@ var width = 600.0
 var hanoiView = HanoiView(frame: NSRect(x: 0, y: 0, width: width, height: height))
 
 XCPShowView("hanoiView", hanoiView)
-var puzzleAnimator = PuzzleAnimator(puzzleView: hanoiView, puzzleSteps: puzzleSteps)
+var puzzleAnimator = HanoiPuzzleAnimator(puzzleView: hanoiView, puzzleSteps: puzzleSteps)
 puzzleAnimator.start()
