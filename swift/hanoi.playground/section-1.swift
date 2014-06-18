@@ -257,7 +257,7 @@ class HanoiView : SCNView {
     }
     
     func diskColorForSize(diskSize: Int, maxSize: Int) -> NSColor {
-        return self.diskColors[diskSize % maxSize]
+        return self.diskColors[diskSize % (maxSize - 1)]
     }
     
     func diskRadiusForSize(diskSize: Int, maxSize: Int) -> CGFloat {
@@ -301,7 +301,7 @@ class PuzzleAnimator : NSObject {
     }
 }
 
-let puzzle = HanoiPuzzle(numberOfDisks: 4)
+let puzzle = HanoiPuzzle(numberOfDisks: 5)
 let puzzleDelegate = HanoiPuzzleSolverStepQuickLookDelegate()
 let result = HanoiSolver(delegate: puzzleDelegate).solve(puzzle)
 
