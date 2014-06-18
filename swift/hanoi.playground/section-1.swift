@@ -1,7 +1,11 @@
 // Playground - Tower of Hanoi in Swift
 
 import Cocoa
+import QuartzCore
+import SceneKit
 import XCPlayground
+
+let animationDuration = 1.0
 
 struct HanoiDisk : Hashable, Equatable {
     var size: Int
@@ -139,43 +143,57 @@ class HanoiPuzzleSolverStepQuickLookDelegate : HanoiSolverStepDelegate {
     }
 }
 
-class HanoiDiskView : NSView {
+let pipeRadius = 0.25
+let maxDiskRadius = 0.5
+
+class HanoiDiskView : SCNTorus {
     var color : NSColor
     
-    init(frame: NSRect, color: NSColor) {
+    init(radius: CGFloat, color: NSColor) {
         self.color = color
         
-        super.init(frame: frame)
-    }
-    
-    override func drawRect(dirtyRect: NSRect) {
-        var cornerRadius = self.frame.height / 2
-        var path = NSBezierPath(roundedRect: dirtyRect, xRadius: cornerRadius, yRadius: cornerRadius)
+        super.init()
+        self.ringRadius = radius
+        self.pipeRadius = pipeRadius
         
-        self.color.setFill()
-        path.fill()
-    }
-    
-    func setCenter(point: CGPoint) -> Void {
-        let halfWidth = self.frame.width / 2
-        let halfHeight = self.frame.height / 2
-        self.frame.origin = CGPoint(x: point.x - halfWidth, y: point.y - halfHeight)
+        self.firstMaterial.diffuse.contents = color
+        self.firstMaterial.specular.contents = NSColor.whiteColor()
     }
 }
 
-class HanoiView : NSView {
-    var disks: Dictionary<HanoiDisk, HanoiDiskView>
+class HanoiView : SCNView {
+    var disks: Dictionary<HanoiDisk, SCNNode>
     
     init(frame: NSRect) {
-        self.disks = Dictionary<HanoiDisk, HanoiDiskView>()
-        
+        self.disks = Dictionary<HanoiDisk, SCNNode>()
         super.init(frame: frame)
+        
+        var scene = SCNScene()
+        
+        var camera = SCNCamera()
+        var cameraNode = SCNNode()
+        cameraNode.camera = camera
+        cameraNode.position = SCNVector3(x: 0, y: 1, z: 3)
+        scene.rootNode.addChildNode(cameraNode)
+        
+        var light = SCNLight()
+        light.type = SCNLightTypeDirectional
+        scene.rootNode.light = light
+        
+        self.scene = scene
     }
     
-    override func drawRect(dirtyRect: NSRect) {
-        var path = NSBezierPath(rect: dirtyRect)
-        path.lineWidth = 2
-        path.stroke()
+    func positionDisk(diskNode: SCNNode, xLocation: Int, yLocation: Int) -> Void {
+        
+        let verticalSpacing = 2.1 * pipeRadius
+        let horizontalSpacing = 4 * maxDiskRadius
+        
+        SCNTransaction.setAnimationDuration(animationDuration)
+        diskNode.position = SCNVector3(
+            x: horizontalSpacing * CGFloat(xLocation - 1),
+            y: verticalSpacing * CGFloat(yLocation),
+            z: 0
+        )
     }
     
     func drawPuzzle(puzzle: HanoiPuzzle) -> Void {
@@ -193,40 +211,31 @@ class HanoiView : NSView {
             for var yIndex = 0; yIndex < peg.count; yIndex++ {
                 var disk = peg[yIndex]
                 var diskView = self.getDiskView(disk, maxSize: numDisks)
-                diskView.setCenter(self.getDiskCoords(xIndex, yLocation: yIndex))
+                
+                positionDisk(diskView, xLocation: xIndex, yLocation: yIndex)
             }
         }
     }
     
-    func getDiskView(disk: HanoiDisk, maxSize: Int) -> HanoiDiskView {
+    func getDiskView(disk: HanoiDisk, maxSize: Int) -> SCNNode {
         if let existingDisk = self.disks[disk] {
             return existingDisk
         }
         else {
-            var diskWidth = self.diskWidthForSize(disk.size, maxSize: maxSize)
-            var diskHeight = self.diskHeight()
+            var diskRadius = self.diskRadiusForSize(disk.size, maxSize: maxSize)
             var diskColor = self.diskColorForSize(disk.size, maxSize: maxSize)
             
             var newDiskView = HanoiDiskView(
-                frame: NSRect(x: 0, y: 0, width: diskWidth, height: diskHeight),
+                radius: diskRadius,
                 color: diskColor
             )
             
-            self.disks[disk] = newDiskView
-            self.addSubview(newDiskView)
+            var diskNode = SCNNode(geometry: newDiskView)
+            self.disks[disk] = diskNode
+            self.scene.rootNode.addChildNode(diskNode)
             
-            return newDiskView
+            return diskNode
         }
-    }
-    
-    func getDiskCoords(xLocation: Int, yLocation: Int) -> CGPoint {
-        let diskWidth = self.diskWidth()
-        let diskHeight = self.diskHeight()
-        
-        var centerX = (diskWidth * Double(xLocation)) + (diskWidth / 2)
-        var centerY = ((diskHeight + 2) * Double(yLocation)) + (diskHeight / 2)
-        
-        return CGPoint(x: centerX, y: centerY)
     }
     
     func diskColorForSize(diskSize: Int, maxSize: Int) -> NSColor {
@@ -237,19 +246,44 @@ class HanoiView : NSView {
         return newColor
     }
     
-    func diskWidthForSize(diskSize: Int, maxSize: Int) -> Double {
-        var maxWidth = self.diskWidth()
-        var minWidth = maxWidth / Double(maxSize)
+    func diskRadiusForSize(diskSize: Int, maxSize: Int) -> CGFloat {
+        var halfRadius = self.maxRadius() / 2
+        return halfRadius + (CGFloat(diskSize) / CGFloat(maxSize)) * halfRadius
+    }
+    
+    func maxRadius() -> CGFloat {
+        return maxDiskRadius
+    }
+}
+
+class PuzzleAnimator : NSObject {
+    var puzzleView: HanoiView
+    var puzzleSteps: Array<HanoiPuzzle>
+    var timer : NSTimer?
+    
+    init(puzzleView: HanoiView, puzzleSteps: Array<HanoiPuzzle>)
+    {
+        self.puzzleView = puzzleView
+        self.puzzleSteps = puzzleSteps.reverse()
         
-        return Double(diskSize) * minWidth
+        super.init()
     }
     
-    func diskWidth() -> Double {
-        return self.frame.width / 3
+    func start() -> Void {
+        var timer = NSTimer(timeInterval: animationDuration, target: self, selector: "renderStep", userInfo: nil, repeats: true)
+        self.timer = timer
+        
+        NSRunLoop.mainRunLoop().addTimer(timer, forMode: NSRunLoopCommonModes)
     }
     
-    func diskHeight() -> Double {
-        return 24
+    func renderStep() -> Void {
+        if self.puzzleSteps.isEmpty {
+            self.timer!.invalidate()
+            return
+        }
+        
+        var step = self.puzzleSteps.removeLast()
+        self.puzzleView.drawPuzzle(step)
     }
 }
 
@@ -268,12 +302,15 @@ for step in puzzleDelegate.puzzleSteps {
 }
 // End Workaround
 
+for step in puzzleSteps {
+    HanoiPuzzleQuickLookHelper(puzzle: step)
+}
+
 var height = 300.0
 var width = 600.0
 var hanoiView = HanoiView(frame: NSRect(x: 0, y: 0, width: width, height: height))
-XCPShowView("hanoiView", hanoiView)
 
-for step in puzzleSteps {
-    HanoiPuzzleQuickLookHelper(puzzle: step)
-    hanoiView.drawPuzzle(step)
-}
+XCPShowView("hanoiView", hanoiView)
+var puzzleAnimator = PuzzleAnimator(puzzleView: hanoiView, puzzleSteps: puzzleSteps)
+puzzleAnimator.start()
+
