@@ -145,21 +145,6 @@ let animationDuration = 1.0
 let pipeRadius = 0.25
 let maxDiskRadius = 0.5
 
-class HanoiDiskView : SCNTorus {
-    var color : NSColor
-    
-    init(radius: CGFloat, color: NSColor) {
-        self.color = color
-        
-        super.init()
-        self.ringRadius = radius
-        self.pipeRadius = pipeRadius
-        
-        self.firstMaterial.diffuse.contents = color
-        self.firstMaterial.specular.contents = NSColor.whiteColor()
-    }
-}
-
 class HanoiView : SCNView {
     var disks: Dictionary<HanoiDisk, SCNNode>
     let diskColors = [
@@ -200,19 +185,6 @@ class HanoiView : SCNView {
         self.scene = scene
     }
     
-    func positionDisk(diskNode: SCNNode, xLocation: Int, yLocation: Int) -> Void {
-        
-        let verticalSpacing = 2.1 * pipeRadius
-        let horizontalSpacing = 4 * maxDiskRadius
-        
-        SCNTransaction.setAnimationDuration(animationDuration)
-        diskNode.position = SCNVector3(
-            x: horizontalSpacing * CGFloat(xLocation - 1),
-            y: pipeRadius + verticalSpacing * CGFloat(yLocation),
-            z: 0
-        )
-    }
-    
     func drawPuzzle(puzzle: HanoiPuzzle) -> Void {
         let pegs = [ puzzle.firstPeg, puzzle.secondPeg, puzzle.thirdPeg]
         
@@ -227,14 +199,25 @@ class HanoiView : SCNView {
             let peg = pegs[xIndex]
             for var yIndex = 0; yIndex < peg.count; yIndex++ {
                 var disk = peg[yIndex]
-                var diskView = self.getDiskView(disk, maxSize: numDisks)
-                
-                positionDisk(diskView, xLocation: xIndex, yLocation: yIndex)
+                var diskNode = self.getDiskNode(disk, maxSize: numDisks)
+                self.positionDisk(diskNode, xLocation: xIndex, yLocation: yIndex)
             }
         }
     }
     
-    func getDiskView(disk: HanoiDisk, maxSize: Int) -> SCNNode {
+    func positionDisk(diskNode: SCNNode, xLocation: Int, yLocation: Int) -> Void {
+        let verticalSpacing = 2.1 * pipeRadius
+        let horizontalSpacing = 4 * maxDiskRadius
+        
+        SCNTransaction.setAnimationDuration(animationDuration)
+        diskNode.position = SCNVector3(
+            x: horizontalSpacing * CGFloat(xLocation - 1),
+            y: pipeRadius + verticalSpacing * CGFloat(yLocation),
+            z: 0
+        )
+    }
+    
+    func getDiskNode(disk: HanoiDisk, maxSize: Int) -> SCNNode {
         if let existingDisk = self.disks[disk] {
             return existingDisk
         }
@@ -242,17 +225,20 @@ class HanoiView : SCNView {
             var diskRadius = self.diskRadiusForSize(disk.size, maxSize: maxSize)
             var diskColor = self.diskColorForSize(disk.size, maxSize: maxSize)
             
-            var newDiskView = HanoiDiskView(
-                radius: diskRadius,
-                color: diskColor
-            )
-            
-            var diskNode = SCNNode(geometry: newDiskView)
+            var diskGeometry = self.getDiskGeometry(diskRadius, color: diskColor)
+            var diskNode = SCNNode(geometry: diskGeometry)
             self.disks[disk] = diskNode
             self.scene.rootNode.addChildNode(diskNode)
             
             return diskNode
         }
+    }
+    
+    func getDiskGeometry(radius: CGFloat, color: NSColor) -> SCNGeometry {
+        var torus = SCNTorus(ringRadius: radius, pipeRadius: pipeRadius)
+        torus.firstMaterial.diffuse.contents = color
+        torus.firstMaterial.specular.contents = NSColor.whiteColor()
+        return torus
     }
     
     func diskColorForSize(diskSize: Int, maxSize: Int) -> NSColor {
@@ -326,4 +312,3 @@ var hanoiView = HanoiView(frame: NSRect(x: 0, y: 0, width: width, height: height
 XCPShowView("hanoiView", hanoiView)
 var puzzleAnimator = PuzzleAnimator(puzzleView: hanoiView, puzzleSteps: puzzleSteps)
 puzzleAnimator.start()
-
