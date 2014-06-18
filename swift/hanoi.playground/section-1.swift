@@ -5,8 +5,6 @@ import QuartzCore
 import SceneKit
 import XCPlayground
 
-let animationDuration = 1.0
-
 struct HanoiDisk : Hashable, Equatable {
     var size: Int
     
@@ -143,6 +141,7 @@ class HanoiPuzzleSolverStepQuickLookDelegate : HanoiSolverStepDelegate {
     }
 }
 
+let animationDuration = 1.0
 let pipeRadius = 0.25
 let maxDiskRadius = 0.5
 
