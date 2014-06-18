@@ -142,7 +142,7 @@ class HanoiPuzzleSolverStepQuickLookDelegate : HanoiSolverStepDelegate {
 }
 
 let animationDuration = 1.0
-let pipeRadius = 0.25
+let pipeRadius = 0.2
 let maxDiskRadius = 0.5
 
 class HanoiView : SCNView {
@@ -245,8 +245,7 @@ class HanoiView : SCNView {
     }
     
     func diskRadiusForSize(diskSize: Int, maxSize: Int) -> CGFloat {
-        var halfRadius = self.maxRadius() / 2
-        return halfRadius + (CGFloat(diskSize) / CGFloat(maxSize)) * halfRadius
+        return self.maxRadius() * (CGFloat(diskSize) / CGFloat(maxSize))
     }
     
     func maxRadius() -> CGFloat {
